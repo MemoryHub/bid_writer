@@ -27,23 +27,23 @@ class StampTester:
             stamp_size_mm=40,      # 印章尺寸40mm
             margin_right_mm=80,    # 距右边距80mm
             margin_bottom_mm=80,   # 距下边距80mm
-            seal_count=3           # 每组3个骑缝章
+            seal_count=1           # 每组1个骑缝章
         )
         
         # 创建印章处理器
         self.processor = StampProcessor(self.config)
         
     def test_all_stamp_types(self, 
-                            pdf_file: str = "resources/test.pdf",
+                            input_file: str = "resources/test_word.docx",
                             stamp_file: str = "resources/stamp.png",
                             output_dir: str = "resources") -> None:
         """
         测试所有印章类型的应用
         
         Args:
-            pdf_file (str): 输入PDF文件路径，默认为'resources/test.pdf'
-            stamp_file (str): 印章图片文件路径，默认为'resources/stamp.png'
-            output_dir (str): 输出目录路径，默认为'resources'
+            input_file (str): 输入PDF文件路径,默认为'resources/test.pdf'
+            stamp_file (str): 印章图片文件路径,默认为'resources/stamp.png'
+            output_dir (str): 输出目录路径,默认为'resources'
             
         测试内容包括：
         1. 同时添加电子章和骑缝章
@@ -55,7 +55,7 @@ class StampTester:
         try:
             # 测试同时添加电子章和骑缝章
             self._test_stamp_type(
-                pdf_file=pdf_file,
+                input_file=input_file,
                 stamp_file=stamp_file,
                 output_file=f"{output_dir}/contract_with_both_stamps.pdf",
                 stamp_type=StampType.BOTH,
@@ -64,7 +64,7 @@ class StampTester:
             
             # 测试只添加电子章
             self._test_stamp_type(
-                pdf_file=pdf_file,
+                input_file=input_file,
                 stamp_file=stamp_file,
                 output_file=f"{output_dir}/contract_with_stamp.pdf",
                 stamp_type=StampType.STAMP,
@@ -73,7 +73,7 @@ class StampTester:
             
             # 测试只添加骑缝章
             self._test_stamp_type(
-                pdf_file=pdf_file,
+                input_file=input_file,
                 stamp_file=stamp_file,
                 output_file=f"{output_dir}/contract_with_seals.pdf",
                 stamp_type=StampType.SEAL,
@@ -86,7 +86,7 @@ class StampTester:
             print(f"测试过程中发生错误: {str(e)}")
     
     def _test_stamp_type(self,
-                        pdf_file: str,
+                        input_file: str,
                         stamp_file: str,
                         output_file: str,
                         stamp_type: StampType,
@@ -95,7 +95,7 @@ class StampTester:
         测试特定类型的印章处理
         
         Args:
-            pdf_file (str): 输入PDF文件路径
+            input_file (str): 输入PDF文件路径
             stamp_file (str): 印章图片文件路径
             output_file (str): 输出PDF文件路径
             stamp_type (StampType): 印章类型
@@ -109,7 +109,7 @@ class StampTester:
         print(f"\n开始测试: {description}")
         try:
             self.processor.process(
-                pdf_file=pdf_file,
+                input_file=input_file,
                 stamp_file=stamp_file,
                 output_file=output_file,
                 stamp_type=stamp_type

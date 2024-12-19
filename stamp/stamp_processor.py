@@ -13,16 +13,45 @@ class StampProcessor:
         self.electronic_stamper = ElectronicStamper(self.config)
         self.seal_stamper = SealStamper(self.config)
     
-    def process(self, pdf_file: str, stamp_file: str, output_file: str, stamp_type: StampType) -> None:
+    def process(self, input_file: str, stamp_file: str, output_file: str, stamp_type: StampType) -> None:
         """
-        处理PDF文件添加印章
-        :param pdf_file: 输入PDF文件路径
+        处理文件添加印章
+        :param input_file: 输入文件路径（支持PDF或Word文档）
         :param stamp_file: 印章图片文件路径
         :param output_file: 输出PDF文件路径
         :param stamp_type: 印章类型
         """
         if not isinstance(stamp_type, StampType):
             raise ValueError("stamp_type必须是StampType枚举类型")
+            
+        # 检查输入文件是否存在
+        if not os.path.exists(input_file):
+            raise FileNotFoundError(f"输入文件不存在: {input_file}")
+            
+        # 检查印章文件是否存在
+        if not os.path.exists(stamp_file):
+            raise FileNotFoundError(f"印章文件不存在: {stamp_file}")
+
+        # 确保输出目录存在
+        os.makedirs(os.path.dirname(output_file), exist_ok=True)
+
+        # 处理Word文档
+        temp_pdf = None
+        if input_file.lower().endswith(('.doc', '.docx')):
+            from convert.file_converter import FileConverter
+            # 创建临时PDF文件路径
+            temp_pdf = os.path.join(
+                os.path.dirname(output_file),
+                f"temp_{os.path.basename(os.path.splitext(input_file)[0])}.pdf"
+            )
+            # 转换为PDF
+            pdf_file = FileConverter.word_to_pdf(
+                input_path=input_file,
+                output_path=temp_pdf,
+                overwrite=True
+            )
+        else:
+            pdf_file = input_file
             
         temp_output = None  # 临时输出文件路径初始化为None
         
@@ -57,5 +86,15 @@ class StampProcessor:
             raise Exception(f"处理文件时出错: {str(e)}")
         
         finally:
+            # 清理临时文件
             if temp_output and os.path.exists(temp_output):
-                os.remove(temp_output) 
+                try:
+                    os.remove(temp_output)
+                except Exception as e:
+                    print(f"警告：清理临时输出文件失败: {str(e)}")
+                    
+            if temp_pdf and os.path.exists(temp_pdf):
+                try:
+                    os.remove(temp_pdf)
+                except Exception as e:
+                    print(f"警告：清理临时PDF文件失败: {str(e)}")

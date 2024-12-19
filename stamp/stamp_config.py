@@ -17,8 +17,8 @@ class StampConfig:
     stamp_size_mm: float = 40.0        # 印章尺寸（直径），单位毫米
     margin_right_mm: float = 60.0      # 电子章距右边距，单位毫米
     margin_bottom_mm: float = 60.0     # 电子章距下边距，单位毫米
-    seal_count: int = 3                # 骑缝章数量
-    pages_per_seal: int = None         # 每个骑缝章跨越的页数
+    seal_count: int = 1                # 骑缝章数量
+    pages_per_seal: int = 12         # 每个骑缝章跨越的页数
 
     def __post_init__(self):
         """
