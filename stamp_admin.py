@@ -1,6 +1,7 @@
 import fitz  # PyMuPDF
 from PIL import Image
 import io
+import os
 
 def mm_to_points(mm):
     """将毫米转换为PDF点数
@@ -63,7 +64,7 @@ def add_seal_to_pdf(pdf_file, seal_file, output_file, seal_count=3, seal_size_mm
     :param output_file: 输出的 PDF 文件路径
     :param seal_count: 每组骑缝章数量，默认为3个
     :param seal_size_mm: 骑缝章尺寸（直径），单位为毫米，默认40mm
-    :param pages_per_seal: 每个骑缝章跨越的页数，默认为None（使用总页数）
+    :param pages_per_seal: 每个骑缝章���越的页数，默认为None（使用总页数）
     """
     # 将毫米转换为点数
     seal_size_pt = mm_to_points(seal_size_mm)
@@ -143,20 +144,113 @@ def add_seal_to_pdf(pdf_file, seal_file, output_file, seal_count=3, seal_size_mm
     finally:
         pdf.close()
 
-# 示例用法
+def add_stamps_to_pdf(pdf_file, stamp_file, output_file, 
+                     stamp_type="both",  # 新增参数，控制盖章类型
+                     margin_right_mm=60, margin_bottom_mm=60, stamp_size_mm=40,
+                     seal_count=3, pages_per_seal=None):
+    """
+    在 PDF 上添加电子公章和/或骑缝章
+    :param pdf_file: 原始 PDF 文件路径
+    :param stamp_file: 公章图片路径（建议 PNG，带透明背景）
+    :param output_file: 输出的 PDF 文件路径
+    :param stamp_type: 盖章类型，可选值："both"(两种都盖)、"stamp"(只盖电子章)、"seal"(只盖骑缝章)
+    :param margin_right_mm: 电子章距离右边界的距离（毫米）
+    :param margin_bottom_mm: 电子章距离下边界的距离（毫米）
+    :param stamp_size_mm: 公章直径，单位为毫米，默认40mm（4cm）
+    :param seal_count: 每组骑缝章数量，默认为3个
+    :param pages_per_seal: 每个骑缝章跨越的页数，默认为None（使用总页数）
+    """
+    try:
+        if stamp_type not in ["both", "stamp", "seal"]:
+            raise ValueError("stamp_type 参数必须是 'both'、'stamp' 或 'seal' 之一")
+
+        if stamp_type in ["both", "seal"]:
+            # 需要盖骑缝章
+            if stamp_type == "both":
+                # 如果需要两种都盖，先盖骑缝章到临时文件
+                temp_output = output_file.replace('.pdf', '_temp.pdf')
+                add_seal_to_pdf(
+                    pdf_file=pdf_file,
+                    seal_file=stamp_file,
+                    output_file=temp_output,
+                    seal_count=seal_count,
+                    seal_size_mm=stamp_size_mm,
+                    pages_per_seal=pages_per_seal
+                )
+                source_file = temp_output
+            else:
+                # 只盖骑缝章
+                add_seal_to_pdf(
+                    pdf_file=pdf_file,
+                    seal_file=stamp_file,
+                    output_file=output_file,
+                    seal_count=seal_count,
+                    seal_size_mm=stamp_size_mm,
+                    pages_per_seal=pages_per_seal
+                )
+                return
+
+        if stamp_type in ["both", "stamp"]:
+            # 需要盖电子章
+            source_file = pdf_file if stamp_type == "stamp" else temp_output
+            add_stamp_to_pdf(
+                pdf_file=source_file,
+                stamp_file=stamp_file,
+                output_file=output_file,
+                margin_right_mm=margin_right_mm,
+                margin_bottom_mm=margin_bottom_mm,
+                stamp_size_mm=stamp_size_mm
+            )
+
+        # 清理临时文件
+        if stamp_type == "both" and os.path.exists(temp_output):
+            os.remove(temp_output)
+            
+        print(f"已成功添加{'电子公章和骑缝章' if stamp_type == 'both' else '电子公章' if stamp_type == 'stamp' else '骑缝章'}，生成文件：{output_file}")
+    except Exception as e:
+        print(f"处理文件时出错: {str(e)}")
+        # 确保清理临时文件
+        if stamp_type == "both" and os.path.exists(temp_output):
+            os.remove(temp_output)
+
+
+# 示例用法更新
 if __name__ == "__main__":
     pdf_file = "resources/test.pdf"       # 输入 PDF 文件路径
-    stamp_file = "resources/stamp.png"        # 公章图片路径
-    output_file = "resources/contract_with_seals.pdf"  # 输出 PDF 文件路径
+    stamp_file = "resources/stamp.png"    # 公章图片路径
     
     try:
-        # 添加骑缝章
-        add_seal_to_pdf(
+        # 同时盖电子章和骑缝章
+        add_stamps_to_pdf(
             pdf_file=pdf_file,
-            seal_file=stamp_file,
-            output_file=output_file,
-            seal_count=3,        # 添加3个骑缝章
-            seal_size_mm=40      # 骑缝章直径40mm
+            stamp_file=stamp_file,
+            output_file="resources/contract_with_both_stamps.pdf",
+            stamp_type="both",      # 两种都盖
+            margin_right_mm=80,
+            margin_bottom_mm=80,
+            stamp_size_mm=40,
+            seal_count=3
+        )
+        
+        # 只盖电子章
+        add_stamps_to_pdf(
+            pdf_file=pdf_file,
+            stamp_file=stamp_file,
+            output_file="resources/contract_with_stamp.pdf",
+            stamp_type="stamp",     # 只盖电子章
+            margin_right_mm=80,
+            margin_bottom_mm=80,
+            stamp_size_mm=40
+        )
+        
+        # 只盖骑缝章
+        add_stamps_to_pdf(
+            pdf_file=pdf_file,
+            stamp_file=stamp_file,
+            output_file="resources/contract_with_seals.pdf",
+            stamp_type="seal",      # 只盖骑缝章
+            stamp_size_mm=40,
+            seal_count=3
         )
     except Exception as e:
         print(f"处理文件时出错: {str(e)}")
