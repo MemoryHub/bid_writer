@@ -21,8 +21,13 @@ class StampProcessor:
         :param output_file: 输出PDF文件路径
         :param stamp_type: 印章类型
         """
+
         if not isinstance(stamp_type, StampType):
             raise ValueError("stamp_type必须是StampType枚举类型")
+            
+        # 检查输出文件路径是否为空
+        if not output_file:
+            raise ValueError("输出文件路径不能为空")
             
         # 检查输入文件是否存在
         if not os.path.exists(input_file):
