@@ -1,5 +1,6 @@
 from pydantic_settings import BaseSettings
 import secrets
+import os
 
 def generate_secret_key() -> str:
     """生成随机密钥"""
@@ -32,6 +33,8 @@ class Settings(BaseSettings):
     MAIL_SSL: bool = True                             # 使用SSL
     USE_CREDENTIALS: bool = True                      # 使用验证
     VALIDATE_CERTS: bool = True                       # 验证证书
+
+    BASE_URL: str = f"http://{os.getenv('HOST', 'localhost')}:{os.getenv('PORT', '8000')}"  # 使用环境变量或默认值
 
     class Config:
         """配置类设置"""
