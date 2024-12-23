@@ -105,11 +105,11 @@ async def verify_and_reset_password(
     user_manager=Depends(fastapi_users.get_user_manager),
 ):    
     # 验证验证码
-    # if not verify_code(request.email, request.code):
-    #     raise HTTPException(
-    #         status_code=status.HTTP_400_BAD_REQUEST,
-    #         detail="无效的验证码",
-    #     )
+    if not verify_code(request.email, request.code):
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="无效的验证码",
+        )
     
     try:
         # 获取用户
