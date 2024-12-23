@@ -7,7 +7,7 @@ import random
 import string
 from datetime import datetime
 
-from app.core.security import fastapi_users, auth_backend
+from app.core.security import fastapi_users, auth_backend, current_active_user
 from app.services.email_service import send_verification_email, send_reset_password_email
 from app.models.user import User
 from app.models.verify import (
@@ -135,3 +135,10 @@ async def verify_and_reset_password(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail=str(e),
         ) 
+
+@router.post("/auth/jwt/logout")
+async def logout(user=Depends(current_active_user)):
+    """登出用户"""
+    if user is None:
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="用户未登录")
+    return {"message": "Successfully logged out"}

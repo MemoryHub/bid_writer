@@ -13,6 +13,7 @@ from app.db.database import get_async_session, async_session
 from app.models.user import User
 from app.core.config import settings
 from app.services.email_service import send_verification_email
+from fastapi_users.password import PasswordHelper
 
 # #################################################################
 # #################### 用户管理器配置 #################################
@@ -26,12 +27,12 @@ class UserManager(IntegerIDMixin, BaseUserManager[User, int]):
     verification_token_secret = settings.SECRET_KEY
 
     async def update(self, user: User, user_update: Dict):
+        """更新用户"""
         if "password" in user_update:
-            user.hashed_password = user_update["password"]
-        if "is_verified" in user_update:
-            user.is_verified = user_update["is_verified"]
-
-       # 获取异步数据库会话
+            # 使用 PasswordHelper 来哈希新密码
+            user.hashed_password = PasswordHelper().hash(user_update["password"])
+        
+        # 获取异步数据库会话
         session = await async_session()  # 获取会话
 
         # 如果 user 对象已经附加到其他会话中，我们需要合并它到当前会话
