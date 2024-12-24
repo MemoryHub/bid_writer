@@ -87,7 +87,7 @@ async def smart_stamp(
             stamp_type=stamp_type
         )
 
-        return ResponseModel(message="印章处理成功", data={"output_file": output_file})
+        return ResponseModel(code=200, message="印章处理成功", data={"output_file": output_file})
 
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
@@ -122,17 +122,17 @@ async def upload_images(images: List[UploadFile] = File(...), user=Depends(curre
 
     full_paths = [f"{settings.BASE_URL}/{os.path.basename(path)}" for path in uploaded_paths]
 
-    return ResponseModel(message="上传成功", data=full_paths)
+    return ResponseModel(code=200, message="上传成功", data=full_paths)
 
 @router.post("/delete-images", response_model=ResponseModel)
 async def delete_images(image_ids: List[int], user=Depends(current_active_user), db: AsyncSession = Depends(get_async_session)):
     """批量删除印章图片"""
     await delete_stamp_images(db, image_ids)
-    return ResponseModel(message="删除成功", data=image_ids)
+    return ResponseModel(code=200, message="删除成功", data=image_ids)
 
 @router.get("/list-images", response_model=ResponseModel)
 async def list_images(user=Depends(current_active_user), db: AsyncSession = Depends(get_async_session)):
     """获取所有印章图片链接"""
     images = await get_all_stamp_images(db, user.id)
     image_paths = [f"{settings.BASE_URL}/{image.image_path}" for image in images]
-    return ResponseModel(message="获取成功", data=image_paths)
+    return ResponseModel(code=200, message="获取成功", data=image_paths)

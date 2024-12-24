@@ -16,6 +16,7 @@ from app.models.verify import (
     VerificationCodeRequest,
 )
 from app.services.verify_service import verify_code, save_verification_code
+from app.models.response import ResponseModel
 
 router = APIRouter(prefix="/auth", tags=["auth"])
 
@@ -32,7 +33,7 @@ def generate_verification_code(length: int = 6) -> str:
 # #################################################################
 
 # 1. 发送注册验证码
-@router.post("/register/send-code")
+@router.post("/register/send-code", response_model=ResponseModel)
 async def send_registration_code(email: EmailStr):
     """
     发送注册验证码
@@ -43,10 +44,10 @@ async def send_registration_code(email: EmailStr):
     verification_code = generate_verification_code()
     await send_verification_email(email, verification_code)
     save_verification_code(email, verification_code)
-    return {"message": "验证码已发送"}
+    return ResponseModel(code=200, message="验证码已发送")
 
 # 2. 验证码注册
-@router.post("/register/verify")
+@router.post("/register/verify", response_model=ResponseModel)
 async def verify_and_register(
     request: VerificationCodeRequest,
     user_manager=Depends(fastapi_users.get_user_manager),
@@ -68,7 +69,7 @@ async def verify_and_register(
             safe=True,
             request=None,
         )
-        return {"message": "注册成功", "user": user}
+        return ResponseModel(code=200, message="注册成功", data = user)
     except Exception as e:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
@@ -90,16 +91,16 @@ router.include_router(
 # #################################################################
 
 # 4. 发送重置密码验证码
-@router.post("/forgot-password/send-code")
+@router.post("/forgot-password/send-code", response_model=ResponseModel)
 async def send_reset_password_code(email: EmailStr):
     """发送密码重置验证码"""
     verification_code = generate_verification_code()  # 生成验证码
     await send_reset_password_email(email, verification_code)  # 发送邮件
     save_verification_code(email, verification_code)  # 保存验证码
-    return {"message": "找回密码验证码已发送"}
+    return ResponseModel(code=200, message="找回密码验证码已发送")
 
 # 5. 重置密码
-@router.post("/reset-password/verify")
+@router.post("/reset-password/verify", response_model=ResponseModel)
 async def verify_and_reset_password(
     request: PasswordResetRequest,
     user_manager=Depends(fastapi_users.get_user_manager),
@@ -126,19 +127,16 @@ async def verify_and_reset_password(
         user_update = {"password": request.new_password}  # 创建更新字典
         await user_manager.update(user,user_update)  # 直接传递 user 实例
 
-
-        
-
-        return {"message": "密码修改成功"}
+        return ResponseModel(code=200, message="密码修改成功")
     except Exception as e:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail=str(e),
         ) 
 
-@router.post("/auth/jwt/logout")
+@router.post("/auth/jwt/logout", response_model=ResponseModel)
 async def logout(user=Depends(current_active_user)):
     """登出用户"""
     if user is None:
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="用户未登录")
-    return {"message": "Successfully logged out"}
+    return ResponseModel(code=200, message="登出成功")
