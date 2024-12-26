@@ -34,13 +34,19 @@ def generate_verification_code(length: int = 6) -> str:
 
 # 1. 发送注册验证码
 @router.post("/register/send-code", response_model=ResponseModel)
-async def send_registration_code(email: EmailStr):
+async def send_registration_code(email: EmailStr, user_manager=Depends(fastapi_users.get_user_manager),):
     """
     发送注册验证码
     1. 生成6位数字验证码
     2. 发送验证码到指定邮箱
     3. 将验证码保存到缓存或数据库中
     """
+    
+    # 检查邮箱是否已注册
+    user = await user_manager.get_by_email(email)
+    if user:
+        return ResponseModel(code=1001, message="该邮箱已注册")
+
     verification_code = generate_verification_code()
     await send_verification_email(email, verification_code)
     save_verification_code(email, verification_code)
@@ -69,7 +75,12 @@ async def verify_and_register(
             safe=True,
             request=None,
         )
-        return ResponseModel(code=200, message="注册成功", data = user)
+        # 将 User 对象转换为字典并返回
+        user_data = {
+            "id": user.id,
+            "email": user.email
+        }
+        return ResponseModel(code=200, message="注册成功", data=user_data)
     except Exception as e:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
