@@ -1,3 +1,4 @@
+import logging
 import fitz
 import os
 from .stamp_type import StampType
@@ -21,34 +22,30 @@ class StampProcessor:
         :param output_file: 输出PDF文件路径
         :param stamp_type: 印章类型
         """
-
         if not isinstance(stamp_type, StampType):
             raise ValueError("stamp_type必须是StampType枚举类型")
-            
+        # 检查输出文件路径是否为空
         # 检查输出文件路径是否为空
         if not output_file:
             raise ValueError("输出文件路径不能为空")
-            
         # 检查输入文件是否存在
         if not os.path.exists(input_file):
             raise FileNotFoundError(f"输入文件不存在: {input_file}")
-            
         # 检查印章文件是否存在
         if not os.path.exists(stamp_file):
             raise FileNotFoundError(f"印章文件不存在: {stamp_file}")
-
         # 确保输出目录存在
         os.makedirs(os.path.dirname(output_file), exist_ok=True)
-
         # 处理Word文档
-        temp_pdf = None
+        temp_pdf = None  
         if input_file.lower().endswith(('.doc', '.docx')):
             from convert.file_converter import FileConverter
             # 创建临时PDF文件路径
             temp_pdf = os.path.join(
                 os.path.dirname(output_file),
-                f"temp_{os.path.basename(os.path.splitext(input_file)[0])}.pdf"
+                f"{os.path.basename(os.path.splitext(input_file)[0])}.pdf"
             )
+    
             # 转换为PDF
             pdf_file = FileConverter.word_to_pdf(
                 input_path=input_file,
@@ -59,10 +56,8 @@ class StampProcessor:
             pdf_file = input_file
             
         temp_output = None  # 临时输出文件路径初始化为None
-        
         try:
             pdf_doc = fitz.open(pdf_file)  # 打开输入的PDF文件
-            
             # 如果印章类型是骑缝章或同时包含电子章和骑缝章
             if stamp_type in [StampType.BOTH, StampType.SEAL]:
                 if stamp_type == StampType.BOTH:

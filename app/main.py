@@ -1,5 +1,6 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.staticfiles import StaticFiles
 from app.api.user import router as user_router
 from app.api.stamp import router as stamp_router
 from app.db.database import engine, Base
@@ -25,6 +26,9 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+# 提供静态文件服务
+app.mount("/resources", StaticFiles(directory="resources"), name="resources")
 
 # 注册路由
 app.include_router(user_router)

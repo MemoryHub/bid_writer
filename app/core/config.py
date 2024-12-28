@@ -36,6 +36,8 @@ class Settings(BaseSettings):
 
     BASE_URL: str = f"http://{os.getenv('HOST', 'localhost')}:{os.getenv('PORT', '8000')}"  # 使用环境变量或默认值
 
+
+    UPLOAD_DIRECTORY: str = "resources"
     class Config:
         """配置类设置"""
         env_file = ".env"  # 从.env文件加载配置

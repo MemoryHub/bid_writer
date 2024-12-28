@@ -6,6 +6,6 @@ services:
     ports:
       - "8000:8000"
     volumes:
-      - ~/Downloads/uploads:/app/resources/uploads  # 映射到 Mac 的 Downloads 目录
+      - ~/Downloads/uploads:/app/resources  # 映射到 Mac 的 Downloads 目录
     environment:
       - PYTHONUNBUFFERED=1

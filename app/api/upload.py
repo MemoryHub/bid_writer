@@ -1,11 +1,12 @@
 from fastapi import APIRouter, File, UploadFile, HTTPException
 from app.models.response import ResponseModel
 import os
+from app.core.config import settings  # 导入配置
 
 router = APIRouter(prefix="/upload", tags=["upload"])
 
 # 定义文件保存路径
-UPLOAD_DIRECTORY = "./resources/uploads"
+UPLOAD_DIRECTORY = settings.UPLOAD_DIRECTORY
 
 # 确保上传目录存在
 os.makedirs(UPLOAD_DIRECTORY, exist_ok=True)
@@ -36,4 +37,7 @@ async def upload_multiple_files(files: list[UploadFile] = File(...)):
             f.write(content)
         file_paths.append(file_location)
 
-    return ResponseModel(code=200, message="文件上传成功", data=file_paths)
+    # 构建返回的完整路径，确保包含 /resources
+    full_paths = [f"{settings.BASE_URL}/{settings.UPLOAD_DIRECTORY}/{os.path.basename(path)}" for path in file_paths]
+
+    return ResponseModel(code=200, message="文件上传成功", data=full_paths)
