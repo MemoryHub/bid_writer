@@ -1,11 +1,26 @@
 version: '3.8'
 
 services:
-  web:
-    build: .
+  backend:
+    build:
+      context: /Users/zhangbo/PycharmProjects/bid_writer  # 后端项目的绝对路径
+      dockerfile: Dockerfile  # 后端的 Dockerfile
     ports:
       - "8000:8000"
     volumes:
       - ~/Downloads/uploads:/app/resources  # 映射到 Mac 的 Downloads 目录
     environment:
       - PYTHONUNBUFFERED=1
+    restart: always
+
+  frontend:
+    build:
+      context: /Users/zhangbo/IdeaProjects/bid-writer  # 前端项目的绝对路径
+      dockerfile: Dockerfile  # 前端的 Dockerfile
+    ports:
+      - "3000:3000"  # 映射前端容器的 3000 端口到宿主机的 3000 端口
+    environment:
+      - NODE_ENV=production  # 设置环境变量
+    depends_on:
+      - backend  # 确保前端服务在后端服务启动后启动
+    restart: always
