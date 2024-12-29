@@ -11,7 +11,7 @@ UPLOAD_DIRECTORY = settings.UPLOAD_DIRECTORY
 # 确保上传目录存在
 os.makedirs(UPLOAD_DIRECTORY, exist_ok=True)
 
-ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'docx', 'pdf'}
+ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'docx', 'doc', 'pdf'}
 
 def allowed_file(filename):
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
